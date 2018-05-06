@@ -1,4 +1,5 @@
 from pytube import YouTube
+from pytube import Playlist
 import win32clipboard
 from tkinter import filedialog
 from tkinter import *
@@ -58,6 +59,20 @@ def sequence(f, g):
     g()
 
 
+def get_video_title(url):
+    yt = YouTube(url)
+    dl_stream = yt.streams.filter(progressive=True, subtype='mp4',).order_by(
+        'resolution').desc().first()
+    title = dl_stream.player_config_args['title']
+    return title
+
+
+def construct_playlist_url(url):
+    base_url = 'https://www.youtube.com/playlist?list='
+    playlist_code = url.split('&list=')[1]
+    return base_url + playlist_code
+
+
 def paste_button_callback():
     url = get_clipboard_contents().strip()
     url_entry.delete(0, END)
@@ -91,6 +106,22 @@ def cancel_selected_button_callback():
     pass
 
 
+def go_button_callback():
+    url_entry_text = url_entry.get().strip()
+    titles = []
+    if 'list' in url_entry_text:
+        url = construct_playlist_url(url_entry_text)
+        pl = Playlist(url)
+        pl.populate_video_urls()
+        print(pl.video_urls)
+        titles = [get_video_title(url) for url in pl.video_urls]
+    else:
+        titles = [get_video_title(url_entry_text)]
+    video_selection_listbox.delete(0, END)
+    for title in titles:
+        video_selection_listbox.insert(END, title)
+
+
 if __name__ == '__main__':
     root = Tk()
     root.title('dowload from youtube')
@@ -107,6 +138,9 @@ if __name__ == '__main__':
     paste_button.pack(side=LEFT)
     url_entry = Entry(url_entry_frame)
     url_entry.pack(side=LEFT, fill=BOTH, expand=1)
+    go_button = Button(url_entry_frame, text='go',
+                       command=go_button_callback)
+    go_button.pack(side=LEFT)
     url_entry_frame.pack(anchor='w', fill=X)
 
     Label(root, text='videos at url (ctrl + click to select individual videos)').pack(anchor='w')
@@ -116,7 +150,7 @@ if __name__ == '__main__':
     # | Title3                |
     # | Title4                |
     # |_______________________|
-    video_selection_listbox = Listbox(root)
+    video_selection_listbox = Listbox(root, selectmode=EXTENDED)
     video_selection_listbox.configure(exportselection=False)
     video_selection_listbox.bind(
         '<<ListboxSelect>>', video_selection_listbox_callback)
@@ -154,7 +188,7 @@ if __name__ == '__main__':
     # |                       |
     # |                       |
     # |_______________________|
-    video_queue_listbox = Listbox(root)
+    video_queue_listbox = Listbox(root, selectmode=EXTENDED)
     video_queue_listbox.pack(fill=BOTH, expand=1)
 
     Label(text='cancel video download').pack(anchor='w')
