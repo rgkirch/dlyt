@@ -1,5 +1,6 @@
 from pytube import YouTube
 import win32clipboard
+from tkinter import filedialog
 from tkinter import *
 from tkinter import ttk
 
@@ -23,7 +24,7 @@ def append_to_text_box(text_box, text):
     text_box['state'] = state
 
 
-def get_clipboard():
+def get_clipboard_contents():
     win32clipboard.OpenClipboard()
     data = win32clipboard.GetClipboardData()
     win32clipboard.CloseClipboard()
@@ -41,22 +42,15 @@ def download(url):
 def is_playlist_url(url):
     return 'list=' in url
 
-
-def paste_from_clipboard_to_url_entry():
-    url = get_clipboard().strip()
-    url_entry.delete(0, END)
-    url_entry.insert(0, url)
-
-
-# def populate_videolist():
-#     clear_listbox(listbox)
-#     url = url_entry.get()
-#     if is_playlist_url(url):
-#         pass
-#     else:
-#         yt = YouTube(url_entry.get())
-#     for item in yt:
-#         lb.insert(END, item)
+    # def populate_videolist():
+    #     clear_listbox(listbox)
+    #     url = url_entry.get()
+    #     if is_playlist_url(url):
+    #         pass
+    #     else:
+    #         yt = YouTube(url_entry.get())
+    #     for item in yt:
+    #         lb.insert(END, item)
 
 
 def sequence(f, g):
@@ -65,7 +59,9 @@ def sequence(f, g):
 
 
 def paste_button_callback():
-    pass
+    url = get_clipboard_contents().strip()
+    url_entry.delete(0, END)
+    url_entry.insert(0, url)
 
 
 def video_selection_listbox_callback(x):
@@ -73,7 +69,10 @@ def video_selection_listbox_callback(x):
 
 
 def browse_button_callback():
-    pass
+    s = filedialog.askdirectory().strip()
+    if s:
+        browse_entry.delete(0, END)
+        browse_entry.insert(0, s)
 
 
 def download_all_button_callback():
