@@ -59,18 +59,21 @@ def sequence(f, g):
     g()
 
 
-def get_video_title(url):
-    yt = YouTube(url)
-    dl_stream = yt.streams.filter(progressive=True, subtype='mp4',).order_by(
-        'resolution').desc().first()
-    title = dl_stream.player_config_args['title']
-    return title
-
-
 def construct_playlist_url(url):
     base_url = 'https://www.youtube.com/playlist?list='
     playlist_code = url.split('&list=')[1]
     return base_url + playlist_code
+
+
+def get_urls_from_entry_text(url_entry_text):
+    urls = []
+    if 'list' in url_entry_text:
+        url = construct_playlist_url(url_entry_text)
+        pl = Playlist(url)
+        pl.populate_video_urls()
+        return pl.video_urls
+    else:
+        return [url_entry_text]
 
 
 def paste_button_callback():
@@ -90,8 +93,10 @@ def browse_button_callback():
         browse_entry.insert(0, s)
 
 
-def download_all_button_callback():
-    pass
+def download_all_button_callback(video_selection_listbox):
+    items = map(int, video_selection_listbox.curselection())
+    print(video_selection_listbox)
+    print([str(item) for item in video_selection_listbox])
 
 
 def download_selected_button_callback():
@@ -106,23 +111,20 @@ def cancel_selected_button_callback():
     pass
 
 
-def go_button_callback():
+def go_button_callback(yt_data):
     url_entry_text = url_entry.get().strip()
-    titles = []
-    if 'list' in url_entry_text:
-        url = construct_playlist_url(url_entry_text)
-        pl = Playlist(url)
-        pl.populate_video_urls()
-        print(pl.video_urls)
-        titles = [get_video_title(url) for url in pl.video_urls]
-    else:
-        titles = [get_video_title(url_entry_text)]
     video_selection_listbox.delete(0, END)
-    for title in titles:
+    urls = get_urls_from_entry_text(url_entry_text)
+    for url in urls:
+        yt = YouTube(url)
+        title = yt.player_config_args['title']
+        yt_data[title] = yt
         video_selection_listbox.insert(END, title)
+        root.update()
 
 
 if __name__ == '__main__':
+    yt_data = {}
     root = Tk()
     root.title('dowload from youtube')
     main_frame = ttk.Frame(root)
@@ -139,7 +141,7 @@ if __name__ == '__main__':
     url_entry = Entry(url_entry_frame)
     url_entry.pack(side=LEFT, fill=BOTH, expand=1)
     go_button = Button(url_entry_frame, text='go',
-                       command=go_button_callback)
+                       command=lambda: go_button_callback(yt_data))
     go_button.pack(side=LEFT)
     url_entry_frame.pack(anchor='w', fill=X)
 
@@ -174,7 +176,7 @@ if __name__ == '__main__':
     # |______________|  |___________________|
     download_frame = Frame(root)
     download_all_button = Button(download_frame, text='download all',
-                                 command=download_all_button_callback)
+                                 command=lambda: download_all_button_callback(video_selection_listbox))
     download_all_button.pack(side=LEFT)
     download_selected_button = Button(download_frame, text='download selected',
                                       command=download_selected_button_callback)
