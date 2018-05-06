@@ -97,17 +97,20 @@ if __name__ == '__main__':
     root.title('dowload from youtube')
     main_frame = ttk.Frame(root)
 
-    Label(root, text='youtube video url (may link to a single video or a playlist)').pack()
+    Label(root, text='youtube video url (may link to a single video or a playlist)').pack(
+        anchor='w')
     #  _______   ________________________________
     # | paste | | 'https://youtu.be/dQw4w9WgXcQ' |
     # |_______| |________________________________|
     url_entry_frame = Frame(root)
     paste_button = Button(url_entry_frame, text='paste button',
-                          command=paste_button_callback).pack(side=LEFT)
-    url_entry = Entry(url_entry_frame).pack(side=LEFT)
-    url_entry_frame.pack()
+                          command=paste_button_callback)
+    paste_button.pack(side=LEFT)
+    url_entry = Entry(url_entry_frame)
+    url_entry.pack(side=LEFT, fill=BOTH, expand=1)
+    url_entry_frame.pack(anchor='w', fill=X)
 
-    Label(root, text='videos at url (ctrl + click to select individual videos)').pack()
+    Label(root, text='videos at url (ctrl + click to select individual videos)').pack(anchor='w')
     #  _______________________
     # | Title1                |
     # | Title2                |
@@ -118,9 +121,9 @@ if __name__ == '__main__':
     video_selection_listbox.configure(exportselection=False)
     video_selection_listbox.bind(
         '<<ListboxSelect>>', video_selection_listbox_callback)
-    video_selection_listbox.pack()
+    video_selection_listbox.pack(fill=BOTH, expand=1)
 
-    Label(root, text='set destination folder for downloaded videos').pack()
+    Label(root, text='set destination folder for downloaded videos').pack(anchor='w')
     #  ________   _______________________
     # | browse | | C:/Videos/            |
     # |________| |_______________________|
@@ -129,10 +132,10 @@ if __name__ == '__main__':
                            command=browse_button_callback)
     browse_button.pack(side=LEFT)
     browse_entry = Entry(browse_frame)
-    browse_entry.pack(side=LEFT)
-    browse_frame.pack()
+    browse_entry.pack(side=LEFT, fill=BOTH, expand=1)
+    browse_frame.pack(anchor='w', fill=X)
 
-    Label(root, text='will not overwrite files with the same name').pack()
+    Label(root, text='will not overwrite files with the same name').pack(anchor='w')
     #  ______________    ___________________
     # | download all |  | download selected |
     # |______________|  |___________________|
@@ -143,9 +146,9 @@ if __name__ == '__main__':
     download_selected_button = Button(download_frame, text='download selected',
                                       command=download_selected_button_callback)
     download_selected_button.pack(side=LEFT)
-    download_frame.pack()
+    download_frame.pack(anchor='w', fill=X)
 
-    Label(root, text='video queue (downloads in progress)').pack()
+    Label(root, text='video queue (downloads in progress)').pack(anchor='w')
     #  _______________________
     # |                       |
     # |                       |
@@ -153,9 +156,9 @@ if __name__ == '__main__':
     # |                       |
     # |_______________________|
     video_queue_listbox = Listbox(root)
-    video_queue_listbox.pack()
+    video_queue_listbox.pack(fill=BOTH, expand=1)
 
-    Label(text='cancel video download').pack()
+    Label(text='cancel video download').pack(anchor='w')
     #  ____________    _________________
     # | cancel all |  | cancel selected |
     # |____________|  |_________________|
@@ -166,6 +169,6 @@ if __name__ == '__main__':
     cancel_selected_button = Button(cancel_frame, text='cancel selected',
                                     command=cancel_selected_button_callback)
     cancel_selected_button.pack(side=LEFT)
-    cancel_frame.pack()
+    cancel_frame.pack(anchor='w', fill=X)
 
     root.mainloop()
