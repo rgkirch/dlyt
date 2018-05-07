@@ -113,18 +113,14 @@ def cancel_selected_button_callback():
 
 
 def go_button_callback(yt_data):
-    def f(url):
-        yt = YouTube(url)
-        title = yt.player_config_args['title']
-        return (title, yt)
     url_entry_text = url_entry.get().strip()
     video_selection_listbox.delete(0, END)
     urls = get_urls_from_entry_text(url_entry_text)
-    jobs = [gevent.spawn(f, url) for url in urls]
+    jobs = [gevent.spawn(YouTube, url) for url in urls]
     gevent.joinall(jobs)
-    # gevent.wait(jobs)
     for job in jobs:
-        title, yt = job.value
+        yt = job.value
+        title = yt.player_config_args['title']
         yt_data[title] = yt
         video_selection_listbox.insert(END, title)
         root.update()
