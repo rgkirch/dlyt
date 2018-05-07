@@ -4,6 +4,7 @@ import win32clipboard
 from tkinter import filedialog
 from tkinter import *
 from tkinter import ttk
+import gevent
 
 
 def lb_single_selection(list_box) -> str:
@@ -112,18 +113,27 @@ def cancel_selected_button_callback():
 
 
 def go_button_callback(yt_data):
+    def f(url):
+        yt = YouTube(url)
+        title = yt.player_config_args['title']
+        return (title, yt)
     url_entry_text = url_entry.get().strip()
     video_selection_listbox.delete(0, END)
     urls = get_urls_from_entry_text(url_entry_text)
-    for url in urls:
-        yt = YouTube(url)
-        title = yt.player_config_args['title']
+    jobs = [gevent.spawn(f, url) for url in urls]
+    gevent.joinall(jobs)
+    # gevent.wait(jobs)
+    for job in jobs:
+        title, yt = job.value
         yt_data[title] = yt
         video_selection_listbox.insert(END, title)
         root.update()
 
 
 if __name__ == '__main__':
+    from gevent import monkey
+    monkey.patch_all()
+
     yt_data = {}
     root = Tk()
     root.title('dowload from youtube')
