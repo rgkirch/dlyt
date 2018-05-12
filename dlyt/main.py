@@ -62,7 +62,7 @@ def sequence(f, g):
 
 def construct_playlist_url(url):
     base_url = 'https://www.youtube.com/playlist?list='
-    playlist_code = url.split('&list=')[1]
+    playlist_code = url.split('list=')[1]
     return base_url + playlist_code
 
 
@@ -95,13 +95,17 @@ def browse_button_callback():
 
 
 def download_all_button_callback(video_selection_listbox):
-    items = map(int, video_selection_listbox.curselection())
-    print(video_selection_listbox)
-    print([str(item) for item in video_selection_listbox])
-
-
-def download_selected_button_callback():
     pass
+
+
+def download_selected_button_callback(yt_data):
+    names = [video_selection_listbox.get(int(item))
+             for item in video_selection_listbox.curselection()]
+    for title in yt_data.keys():
+        yt = yt_data[title]
+        # yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first().download()
+        yt.streams.filter(type='audio').order_by(
+            'bitrate').desc().first().download()
 
 
 def cancel_all_button_callback():
@@ -116,11 +120,13 @@ def go_button_callback(yt_data):
     url_entry_text = url_entry.get().strip()
     video_selection_listbox.delete(0, END)
     urls = get_urls_from_entry_text(url_entry_text)
-    jobs = [gevent.spawn(YouTube, url) for url in urls]
-    gevent.joinall(jobs)
-    for job in jobs:
-        yt = job.value
-        title = yt.player_config_args['title']
+    jobs = [YouTube(url) for url in urls]
+    # jobs = [gevent.spawn(YouTube, url) for url in urls]
+    # gevent.joinall(jobs)
+    for yt in jobs:
+        # for job in jobs:
+        # yt = job.value
+        title = yt.title
         yt_data[title] = yt
         video_selection_listbox.insert(END, title)
         root.update()
@@ -128,7 +134,9 @@ def go_button_callback(yt_data):
 
 if __name__ == '__main__':
     from gevent import monkey
+    from gevent.pool import Pool
     monkey.patch_all()
+    # Pool(2)
 
     yt_data = {}
     root = Tk()
@@ -185,7 +193,7 @@ if __name__ == '__main__':
                                  command=lambda: download_all_button_callback(video_selection_listbox))
     download_all_button.pack(side=LEFT)
     download_selected_button = Button(download_frame, text='download selected',
-                                      command=download_selected_button_callback)
+                                      command=download_selected_button_callback(yt_data))
     download_selected_button.pack(side=LEFT)
     download_frame.pack(anchor='w', fill=X)
 
